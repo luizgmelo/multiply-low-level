@@ -2,38 +2,45 @@
 # Em binario   1001 x 0011 = 0001 1011
 # Sum          1001 + 0011 = 1100 
 
-M = [0, 0, 1, 1] # Multiplicando 3
-Q = [1, 0, 0, 1] # Multiplicador 9
+M = [0]*60 + [1, 0, 1, 1] # Multiplicand 3 (64 bits)
+Q = [0]*28 + [0, 1, 0, 1] # Multiplier 9 (32 bits)
+N = 32 # Bits
 
-def multiply(n1, n2):
-    n = len(n2) # multiplier
-    result = [0] * n
+def multiply(multiplicand, multiplier):
+    product = [0]*64 # Product (64 bits)
 
-    for i in range(n - 1, -1, -1):
-        carry = 0
+    for i in range(N - 1, -1, -1):
+        lsb_multiplier = multiplier[N - 1]
 
-        bit3 = n2[n - 1]
+        if lsb_multiplier == 1:
+            product = addition(product, multiplicand)
 
-        if bit3 == 1:
-            for i in range(n - 1, -1, -1):
-                bit1 = n1[i]
-                bit2 = result[i]
-
-                # Full Adder
-                sum_bits = bit1 + bit2 + carry
-                result[i] = sum_bits % 2
-                carry = sum_bits // 2
+        # shift left
+        multiplicand.pop(0)
+        multiplicand.append(0)
 
         # shift right
-        n2.pop() # discart bit
-        shift_result_to_n2 = result.pop()
-        n2.insert(0, shift_result_to_n2)
-        # shift carry to result 
-        result.insert(0, carry)
+        multiplier.pop()
+        multiplier.insert(0, 0)
 
-    return result + n2
+
+    return product
+
+def addition(product, multiplicand):
+    carry = 0
+
+    for i in range(N + 32 - 1, -1, -1):
+        bit1 = multiplicand[i]
+        bit2 = product[i]
+
+        # Full Adder
+        sum_bits = bit1 + bit2 + carry
+        product[i] = sum_bits % 2
+        carry = sum_bits // 2
+
+    return product
+
 
 if __name__ == "__main__":
-    print(f"{M} x {Q} =", end=' ')
     result = multiply(M, Q)
     print(result)
